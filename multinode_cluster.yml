@@ -1,0 +1,11 @@
+#- hosts: Master
+# roles:
+#   - role: master_node
+
+#- hosts: Worker
+#  roles:          
+#    - role: worker_node
+
+- hosts: Master
+  roles:
+    - role: Deployment      

@@ -1,0 +1,14 @@
+---
+# tasks file for Deployment
+- name: "Creating Deployment"
+  command: kubectl create deploy mypod --image=niks1999/webserver:2
+
+- name: "Exposing Deployment"
+  command: kubectl expose deploy mypod --port=80 --type=NodePort
+
+- name: "Service"
+  command: kubectl get svc
+  register: service
+
+- debug:
+        var: service.stdout_lines  

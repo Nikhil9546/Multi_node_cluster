@@ -1,0 +1,91 @@
+---
+# tasks file for master_node
+
+- name: Docker installation
+  package:
+        name: "docker"
+        state: present
+
+- name: Configuring yum for master
+  yum_repository:
+        name: kubernetes
+        description: yum repo for kubernetes
+        baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+        enabled: yes
+        gpgcheck: yes
+        repo_gpgcheck: yes
+        gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+        exclude:
+            - kubelet
+            - kubeadm
+            - kubectl
+
+
+- name: Installing kubeadm
+  yum:
+    name: kubeadm
+    disable_excludes: kubernetes
+
+- name: Installing iproute-tc
+  package:
+    name:
+    - iproute-tc
+    state: present
+
+
+- name: enabling docker and kubelet service
+  service:
+    name: "{{ item }}"  
+    state: started
+    enabled: yes
+  loop:
+    - kubelet
+    - docker
+
+- name: pulling docker images
+  shell: kubeadm config images pull
+
+- name: copying content of the daemon.json file
+  copy:
+    dest: /etc/docker/daemon.json
+    src:  daemon.json
+
+- name: restarting docker services
+  service:
+    name: docker
+    state: restarted
+
+- name: copying k8s conf file
+  copy:
+    dest: /etc/sysctl.d/kube.conf
+    src: kube.conf
+
+- name: refreshing sysctl
+  shell: "sysctl --system"  
+
+- name: initializing  kubeadm service
+  shell: "kubeadm init --pod-network-cidr=10.244.0.0/16  --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem"
+  ignore_errors: yes
+
+- name: Creating directory
+  file:
+    name: "$HOME/.kube"
+    state: directory
+
+- name: Copy configuration file
+  command: "cp -i /etc/kubernetes/admin.conf $HOME/.kube/config"
+  ignore_errors: yes
+
+- name: K8s requirement
+  shell: "chown $(id -u):$(id -g) $HOME/.kube/config"
+
+- name: Setting up CNI with Flannel addons
+  shell: "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml"
+
+- name: Generating token for worker-node
+  shell: "kubeadm token create --print-join-command"
+  register: token
+
+- name: debugging
+  debug:
+    var: token.stdout  

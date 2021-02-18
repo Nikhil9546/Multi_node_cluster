@@ -1,0 +1,4 @@
+---
+# vars file for master_node
+
+token: slave_token.sh

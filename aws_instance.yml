@@ -1,0 +1,96 @@
+- hosts: localhost
+  vars_files:
+          - sec.yml
+
+  tasks:
+  - name: "Download boto3"
+    pip:
+            name: boto3
+   
+  - name: "Launch master node"
+    ec2_instance:
+            region: "ap-south-1"
+            name: "master_node"
+            key_name: Hadoop
+            vpc_subnet_id: "subnet-56b2ba3e"
+            instance_type: "t2.micro"
+            security_group: default
+            state: present 
+            network: 
+                 assign_public_ip: true
+            image_id: "ami-04b1ddd35fd71475a"
+            aws_access_key: "{{ access_key }}"
+            aws_secret_key: "{{ secret_key }}"
+
+    register: i1   
+
+
+  - name: "Launch worker node"
+    ec2_instance:
+            region: "ap-south-1"
+            name: "worker_node 1"
+            key_name: Hadoop
+            vpc_subnet_id: "subnet-56b2ba3e"
+            instance_type: "t2.micro"
+            security_group: default
+            state: present
+            network:
+                 assign_public_ip: true
+            image_id: "ami-04b1ddd35fd71475a"
+            aws_access_key: "{{ access_key }}"
+            aws_secret_key: "{{ secret_key }}"
+
+    register: i2      
+
+
+  - name: "Launching worker node"
+    ec2_instance:
+            region: "ap-south-1"
+            name: "worker_node 2"
+            key_name: Hadoop
+            vpc_subnet_id: "subnet-56b2ba3e"
+            instance_type: "t2.micro"
+            security_group: default
+            state: present
+            network:
+                 assign_public_ip: true
+            image_id: "ami-04b1ddd35fd71475a"
+            aws_access_key: "{{ access_key }}"
+            aws_secret_key: "{{ secret_key }}"
+            
+    register: i3
+
+  - name: "capturing master  ip"
+    set_fact:
+            ip_master: "{{ i1.instances[0]['network_interfaces'][0]['association']['public_ip'] }}"
+  - debug:
+          var: ip_master
+
+  - name: "capturing worker node ip"
+    set_fact:
+            ip_worker1: "{{ i2.instances[0]['network_interfaces'][0]['association']['public_ip'] }}"
+  - debug:
+          var: ip_worker1
+
+  - name: "capturing worker node ip"
+    set_fact:
+            ip_worker2: "{{ i3.instances[0]['network_interfaces'][0]['association']['public_ip'] }}"
+  - debug:
+          var: ip_worker2
+    
+  - name: "Updating inventory"
+    blockinfile:
+            path: "/root/ip.txt"
+            block: |
+                    {{ item.grp }}
+                    {{ item.ip }} ansible_user=ec2-user ansible_ssh_private_key_file=/root/awskey/Hadoop.pem ansible_connection=ssh
+            marker: "# {{ item.grp }}"        
+
+
+    with_items: 
+           - {grp: "[Master]" , ip: "{{ ip_master }}" }
+           - {grp: "[Worker]" , ip: "{{ ip_worker1 }}" }
+           - {grp: "[Worker]" , ip: "{{ ip_worker2 }}" }  
+
+  - name: "Refreshing Inventory"
+    meta: refresh_inventory    
