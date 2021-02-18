@@ -11,7 +11,7 @@
     ec2_instance:
             region: "ap-south-1"
             name: "master_node"
-            key_name: Hadoop
+            key_name: {{ key }}
             vpc_subnet_id: "subnet-56b2ba3e"
             instance_type: "t2.micro"
             security_group: default
@@ -29,7 +29,7 @@
     ec2_instance:
             region: "ap-south-1"
             name: "worker_node 1"
-            key_name: Hadoop
+            key_name: {{ key }}
             vpc_subnet_id: "subnet-56b2ba3e"
             instance_type: "t2.micro"
             security_group: default
@@ -47,7 +47,7 @@
     ec2_instance:
             region: "ap-south-1"
             name: "worker_node 2"
-            key_name: Hadoop
+            key_name: {{ key }}
             vpc_subnet_id: "subnet-56b2ba3e"
             instance_type: "t2.micro"
             security_group: default
