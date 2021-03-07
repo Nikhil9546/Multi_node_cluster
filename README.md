@@ -8,16 +8,17 @@
 - To install ansible `$ sudo yum install ansible` for RHEL8 and Centos.
 
 #### Install ansible on Ubuntu/Debian systems
-Step 1) Perform an update to the packages
+- Step 1) Perform an update to the packages
 
 `$ sudo apt update`
-Step 2) Install the software-properties-common package
+
+- Step 2) Install the software-properties-common package
 
 `$ sudo apt install software-properties-common`
-Step 3) Install ansible personal package archive
+- Step 3) Install ansible personal package archive
 
 `$ sudo apt-add-repository ppa:ansible/ansible`
-Step 4) Install ansible
+- Step 4) Install ansible
 
 `$ sudo apt update`
 `$ sudo apt install ansible`
